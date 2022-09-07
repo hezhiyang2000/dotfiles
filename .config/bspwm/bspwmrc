@@ -1,0 +1,43 @@
+#! /bin/sh
+
+## Set environment path
+export BSPWM_CONFIG="${XDG_CONFIG_HOME:-$HOME/.config}/bspwm"
+
+### BSPC ###
+INTERNAL_MONITOR="eDP-1"
+EXTERNAL_MONITOR="DP-1"
+# on first load setup default workspaces
+if [[ "$1" = 0 ]]; then
+  if [[ $(xrandr -q | grep "${EXTERNAL_MONITOR} connected") ]]; then
+    bspc monitor "$EXTERNAL_MONITOR" -d 1 2 3 4 5
+    bspc monitor "$INTERNAL_MONITOR" -d 6 7 8 9 10
+    bspc wm -O "$EXTERNAL_MONITOR" "$INTERNAL_MONITOR"
+  else
+    bspc monitor "$INTERNAL_MONITOR" -d 1 2 3 4 5 6 7 8 9 10
+  fi
+fi
+
+sxhkd&
+
+fcitx5 -d & 
+sudo v2raya &
+
+pgrep -x sxhkd > /dev/null || sxhkd &
+~/.config/bspwm/bspwm_setup_monitors.sh &
+
+bspc monitor DP-1 -d 1 2 3 4 5
+bspc monitor eDP-1 -d 6 7 8 9 10
+
+bspc config border_width         2
+bspc config window_gap           5 
+
+bspc config split_ratio          0.5
+bspc config borderless_monocle   true
+bspc config gapless_monocle      true
+bspc config focused_border_color #FFFDE7
+
+bspc rule -a Gimp desktop='^8' state=floating follow=on
+bspc rule -a mplayer2 state=floating
+bspc rule -a Kupfer.py focus=on
+bspc rule -a Screenkey manage=off
+bspc rule -a Zathura state=tiled
