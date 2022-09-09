@@ -8,25 +8,35 @@ INTERNAL_MONITOR="eDP-1"
 EXTERNAL_MONITOR="DP-1"
 # on first load setup default workspaces
 if [[ "$1" = 0 ]]; then
-  if [[ $(xrandr -q | grep "${EXTERNAL_MONITOR} connected") ]]; then
-    bspc monitor "$EXTERNAL_MONITOR" -d 1 2 3 4 5
-    bspc monitor "$INTERNAL_MONITOR" -d 6 7 8 9 10
-    bspc wm -O "$EXTERNAL_MONITOR" "$INTERNAL_MONITOR"
+  if [[ $(xrandr -q | grep "^${EXTERNAL_MONITOR} connected") ]]; then
+    echo "multi"
+    bspc monitor "$INTERNAL_MONITOR" -d 1 2 3 4 5
+    bspc monitor "$EXTERNAL_MONITOR" -d 6 7 8 9 10
+    bspc wm -O "$INTERNAL_MONITOR" "$EXTERNAL_MONITOR"
   else
+    echo "single"
     bspc monitor "$INTERNAL_MONITOR" -d 1 2 3 4 5 6 7 8 9 10
   fi
 fi
 
-sxhkd&
+_run() {
+    if ! pgrep -x "${1}" &>/dev/null; then
+        "$@" &
+    fi
+}
 
-fcitx5 -d & 
-sudo v2raya &
+_sudo_run() {
+    if ! pgrep -x "${1}" &>/dev/null; then
+        sudo "$@" &
+    fi
+}
 
-pgrep -x sxhkd > /dev/null || sxhkd &
-~/.config/bspwm/bspwm_setup_monitors.sh &
+_run sxhkd
 
-bspc monitor DP-1 -d 1 2 3 4 5
-bspc monitor eDP-1 -d 6 7 8 9 10
+_run fcitx5 -d
+_sudo_run v2raya
+
+/home/candy/.config/bspwm/bspwm_setup_monitors.sh &
 
 bspc config border_width         2
 bspc config window_gap           5 
